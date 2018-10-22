@@ -9,16 +9,30 @@ include_once 'vendor/autoload.php';
 //var_dump($value);
 
 
-//$tokenBuilder = new \ITBWTJohnnyJWT\TokenBuilder();
-//
-//try {
-//    $secret = 'secret';
-//    $tokenBuilder->setSecret($secret)->buildToken();
-//    $token = $tokenBuilder->getToken();
-//    var_dump($token);
-//    $verifyToken = new \ITBWTJohnnyJWT\TokenVerify();
-//    $verify = $verifyToken->setSecret($secret)->setToken($token)->verify();
-//    var_dump($verify);
-//} catch (\ITBWTJohnnyJWT\Exceptions\ITBWTJohnnyJWTException $e) {
-//    echo $e->getMessage();
-//}
+$tokenBuilder = new \ITBWTJohnnyJWT\TokenBuilder();
+
+try {
+    $header = json_encode(["alg" => "HS256","typ" =>  "JWT"]);
+    $payload = json_encode(["iat" =>  time()]);
+    $config = new \ITBWTJohnnyJWT\Helpers\AuthConfig();
+    $tokenObj = new \ITBWTJohnnyJWT\Token();
+    $verifyObj = new \ITBWTJohnnyJWT\TokenVerify();
+    $verifyObj->setSecret($config->getSecret());
+
+    $tokenObj->setConfig($config)
+        ->setHeader($header)
+        ->setPayload($payload)
+        ->create();
+
+    $originToken = $tokenObj->getToken();
+
+    $config->setSecret('');
+    $tokenObj->create();
+
+    $fakeToken = $tokenObj->getToken();
+
+    $verifyObj->setToken($originToken);
+    dd($verifyObj->verify());
+} catch (\ITBWTJohnnyJWT\Exceptions\ITBWTJohnnyJWTException $e) {
+    echo $e->getMessage();
+}

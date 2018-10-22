@@ -44,7 +44,8 @@ class Token
     }
 
     /**
-     * @param mixed $config
+     * @param $config
+     * @return Token
      */
     public function setConfig($config): self
     {
@@ -82,7 +83,8 @@ class Token
     }
 
     /**
-     * @param mixed $payload
+     * @param string $payload
+     * @return $this
      */
     public function setPayload(string $payload)
     {
@@ -101,6 +103,7 @@ class Token
 
 
     /**
+     * @throws NotSetConfigException
      * @throws TokenException
      */
     public function create() : void
@@ -111,6 +114,7 @@ class Token
     }
 
     /**
+     * @throws NotSetConfigException
      * @throws TokenException
      */
     private function checkParams()

@@ -13,18 +13,41 @@ class TokenVerifyTest extends \PHPUnit\Framework\TestCase
      */
     private $verifyObj;
 
+    private $header;
+
+    private $payload;
+
+    private $config;
+
     public  function setUp()/* The :void return type declaration that should be here would cause a BC issue */
     {
-
-        $this->verifyObj = new \ITBWTJohnnyJWT\TokenVerify();
+        $this->header = json_encode(["alg" => "HS256","typ" =>  "JWT"]);
+        $this->payload = json_encode(["iat" =>  time(), 'exp' => time() + 3600]);
+        $this->config = new \ITBWTJohnnyJWT\Helpers\AuthConfig();
+        $this->verifyObj = new ITBWTJohnnyJWT\TokenVerify();
         $this->verifyObj->setSecret('secret');
     }
 
+    /**
+     * @throws \ITBWTJohnnyJWT\Exceptions\NotSetConfigException
+     * @throws \ITBWTJohnnyJWT\Exceptions\TokenException
+     */
     public function testVerifySuccess()
     {
-        $token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MTYyMzkwMjJ9.ygbbkdw2ZRJSTyNSL5o8fKNLngAIQTkGsDCM8g6sGrg';
-        $this->verifyObj->setToken($token);
-        $this->assertTrue($this->verifyObj->verify());
+
+        $tokenObj = new \ITBWTJohnnyJWT\Token();
+        $verifyObj = new \ITBWTJohnnyJWT\TokenVerify();
+        $verifyObj->setSecret($this->config->getSecret());
+
+        $tokenObj->setConfig($this->config)
+            ->setHeader($this->header)
+            ->setPayload($this->payload)
+            ->create();
+
+        $originToken = $tokenObj->getToken();
+        $verifyObj->setToken($originToken);
+        $this->assertTrue($verifyObj->verify());
+
     }
 
     /**
@@ -32,32 +55,30 @@ class TokenVerifyTest extends \PHPUnit\Framework\TestCase
      */
     public function testVerifyFailed()
     {
-        $token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MTYyfQ.ygbbkdw2ZRJSTyNSL5o8fKNLngAIQTkGsDCM8g6sGrg';
+        $token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.auMjFnpM704c_YRViyTIEI93XETIb9lMFSqMzvmEXyc';
         $this->verifyObj->setToken($token);
         $this->assertNotTrue($this->verifyObj->verify());
     }
 
+    /**
+     * @throws \ITBWTJohnnyJWT\Exceptions\NotSetConfigException
+     * @throws \ITBWTJohnnyJWT\Exceptions\TokenException
+     */
     public function testVerifyTokenWithoutSecret()
     {
-        $header = json_encode(["alg" => "HS256","typ" =>  "JWT"]);
-        $payload = json_encode(["iat" =>  1516239022]);
-        $config = new \ITBWTJohnnyJWT\Helpers\AuthConfig();
         $tokenObj = new \ITBWTJohnnyJWT\Token();
         $verifyObj = new \ITBWTJohnnyJWT\TokenVerify();
-        $verifyObj->setSecret($config->getSecret());
+        $verifyObj->setSecret($this->config->getSecret());
 
-        $tokenObj->setConfig($config)
-            ->setHeader($header)
-            ->setPayload($payload)
+        $tokenObj->setConfig($this->config)
+            ->setHeader($this->header)
+            ->setPayload($this->payload)
             ->create();
 
         $originToken = $tokenObj->getToken();
 
-        $config->setSecret('');
-
-
-        $tokenObj
-            ->create();
+        $this->config->setSecret('');
+        $tokenObj->create();
 
         $fakeToken = $tokenObj->getToken();
 
@@ -67,7 +88,51 @@ class TokenVerifyTest extends \PHPUnit\Framework\TestCase
         $verifyObj->setToken($fakeToken);
         $this->assertNotTrue($verifyObj->verify());
 
-
-
+        $this->config->setSecret('secret');
     }
+
+    /**
+     * @throws \ITBWTJohnnyJWT\Exceptions\NotSetConfigException
+     * @throws \ITBWTJohnnyJWT\Exceptions\TokenException
+     */
+    public function testCheckExpirationFailed()
+    {
+        $this->payload = json_encode(["iat" =>  time() - 1000, 'exp' => time() - 500]);
+        $tokenObj = new \ITBWTJohnnyJWT\Token();
+        $verifyObj = new \ITBWTJohnnyJWT\TokenVerify();
+        $verifyObj->setSecret($this->config->getSecret());
+
+        $tokenObj->setConfig($this->config)
+            ->setHeader($this->header)
+            ->setPayload($this->payload)
+            ->create();
+
+        $token = $tokenObj->getToken();
+
+        $verifyObj->setToken($token);
+        $this->assertFalse($verifyObj->verify());
+    }
+
+    /**
+     * @throws \ITBWTJohnnyJWT\Exceptions\NotSetConfigException
+     * @throws \ITBWTJohnnyJWT\Exceptions\TokenException
+     */
+    public function testCheckExpirationNotFailed()
+    {
+        $this->payload = json_encode(["iat" =>  time(), 'exp' => time() + 500]);
+        $tokenObj = new \ITBWTJohnnyJWT\Token();
+        $verifyObj = new \ITBWTJohnnyJWT\TokenVerify();
+        $verifyObj->setSecret($this->config->getSecret());
+
+        $tokenObj->setConfig($this->config)
+            ->setHeader($this->header)
+            ->setPayload($this->payload)
+            ->create();
+
+        $token = $tokenObj->getToken();
+
+        $verifyObj->setToken($token);
+        $this->assertTrue($verifyObj->verify());
+    }
+
 }

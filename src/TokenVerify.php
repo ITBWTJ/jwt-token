@@ -8,8 +8,8 @@
 
 namespace ITBWTJohnnyJWT;
 
-
 use ITBWTJohnnyJWT\Helpers\Base64;
+use ITBWTJohnnyJWT\Exceptions\VerifyException;
 
 class TokenVerify
 {
@@ -23,8 +23,18 @@ class TokenVerify
 
     private $alg = 'sha256';
 
+    private $error;
+
+    private $payload;
+
+    /**
+     * @var Base64
+     */
+    private $coder;
+
     public function __construct()
     {
+        $this->coder = new Base64();
     }
 
     /**
@@ -36,6 +46,14 @@ class TokenVerify
         $this->secret = $secret;
 
         return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getError(): ?string
+    {
+        return $this->error;
     }
 
     /**
@@ -54,10 +72,31 @@ class TokenVerify
      */
     public function verify()
     {
-        $this->explode();
-        $this->buildSignature();
+        try {
+            $this->explode();
+            $this->checkSignature();
+            $this->checkTimeExpire();
+        } catch (VerifyException $e) {
+            $this->error = $e->getMessage();
+            return false;
+        }
 
-        return $this->compare();
+        return true;
+    }
+
+    /**
+     * @throws VerifyException
+     */
+    private function checkSignature()
+    {
+        $this->buildSignature();
+        $this->compareSignature();
+    }
+
+    private function checkTimeExpire()
+    {
+        $this->convertPayload();
+        $this->compareTimeExpire();
     }
 
     /**
@@ -79,10 +118,30 @@ class TokenVerify
     }
 
     /**
-     * @return bool
+     * @throws VerifyException
      */
-    private function compare() : bool
+    private function compareSignature()
     {
-        return $this->signature === $this->explode[2];
+        if (!($this->signature === $this->explode[2])) {
+            throw new VerifyException('Signature not equals');
+        }
+    }
+
+    /**
+     * @throws VerifyException
+     */
+    private function compareTimeExpire()
+    {
+        if (empty($this->payload['exp'])  || $this->payload['exp'] < time()) {
+            throw new VerifyException('Expiration token');
+        }
+    }
+
+    /**
+     *
+     */
+    private function convertPayload()
+    {
+        $this->payload = json_decode($this->coder->decode($this->explode[1]), 1);
     }
 }

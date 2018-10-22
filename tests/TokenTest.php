@@ -54,7 +54,8 @@ class TokenTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     *
+     * @throws \ITBWTJohnnyJWT\Exceptions\NotSetConfigException
+     * @throws \ITBWTJohnnyJWT\Exceptions\TokenException
      */
     public function testTokenCreate()
     {
@@ -71,6 +72,8 @@ class TokenTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * @throws \ITBWTJohnnyJWT\Exceptions\NotSetConfigException
+     * @throws \ITBWTJohnnyJWT\Exceptions\TokenException
      * @expectedException  \ITBWTJohnnyJWT\Exceptions\TokenException
      */
     public function testNotSetPayload()
