@@ -14,13 +14,9 @@ use ITBWTJohnnyJWT\Helpers\AuthConfig;
 
 class TokenBuilder
 {
-    private $type = 'jwt';
-
     private $alg = 'HS256';
 
     private $token;
-
-    private $exp;
 
     private $iss;
 
@@ -28,7 +24,12 @@ class TokenBuilder
 
     private $data;
 
+    /**
+     * @var AuthConfig
+     */
     private $config;
+
+    private $payload;
 
     /**
      * @param AuthConfig $config
@@ -39,22 +40,6 @@ class TokenBuilder
         $this->config = $config;
 
         return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getType() : ?string
-    {
-        return $this->type;
-    }
-
-    /**
-     * @param string $type
-     */
-    public function setType(string $type)
-    {
-        $this->type = $type;
     }
 
     /**
@@ -78,19 +63,11 @@ class TokenBuilder
     /**
      * @return mixed
      */
-    public function getExp() : ?int
+    public function getExp() : int
     {
-        return $this->exp;
-    }
+        $start = $this->payload['iat'];
 
-    /**
-     * @param mixed $exp
-     */
-    public function setExp(\DateTime $exp)
-    {
-        $this->exp = $exp;
-
-        return $this;
+        return $start + ($this->config->getTtl() * 60);
     }
 
     /**
@@ -226,16 +203,14 @@ class TokenBuilder
      */
     private function getPayload() : string
     {
-        $payload = [];
+        if ($this->iss) $this->payload = array_merge($this->payload, ['iss' => $this->getIss()]);
+        if ($this->sub) $this->payload = array_merge($this->payload, ['sub' => $this->getSub()]);
+        if ($this->data) $this->payload = array_merge($this->payload, $this->getData());
 
-        if ($this->iss) $payload = array_merge($payload, ['iss' => $this->getIss()]);
-        if ($this->sub) $payload = array_merge($payload, ['sub' => $this->getSub()]);
-        if ($this->exp) $payload = array_merge($payload, ['iss' => $this->getExp()]);
-        if ($this->data) $payload = array_merge($payload, $this->getData());
+        $this->payload['iat'] = $this->getIat();
+        $this->payload['exp'] = $this->getExp();
 
-        $payload['iat'] = $this->getIat();
-
-        return json_encode($payload);
+        return json_encode($this->payload);
     }
 
 
