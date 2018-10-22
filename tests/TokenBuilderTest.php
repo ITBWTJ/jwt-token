@@ -31,4 +31,29 @@ class TokenBuilderTest extends \PHPUnit\Framework\TestCase
 
         $this->assertTrue(is_string($token));
     }
+
+    public function testIat()
+    {
+        $tokenBuilder = new TokenBuilder();
+        $class = new ReflectionClass($tokenBuilder);
+        $method = $class->getMethod ('getIat');
+        $method->setAccessible(true);
+        $iat = $method->invoke ($tokenBuilder);
+
+        $this->assertTrue(is_int($iat));
+    }
+
+    public function testExp()
+    {
+        $tokenBuilder = new TokenBuilder();
+        $confMock = $this->createMock(\ITBWTJohnnyJWT\Helpers\AuthConfig::class);
+        $confMock->method('getTtl')->willReturn(30);
+        $tokenBuilder->setConfig($confMock);
+        $class = new ReflectionClass($tokenBuilder);
+        $method = $class->getMethod ('getExp');
+        $method->setAccessible(true);
+        $exp = $method->invoke ($tokenBuilder);
+
+        $this->assertTrue(is_int($exp));
+    }
 }
