@@ -9,6 +9,7 @@
 namespace ITBWTJohnnyJWT;
 
 
+use ITBWTJohnnyJWT\Exceptions\ITBWTJohnnyJWTException;
 use ITBWTJohnnyJWT\Helpers\AuthConfig;
 
 class AuthorizationService
@@ -29,7 +30,7 @@ class AuthorizationService
     private $tokenBuilder;
 
     /**
-     * @var
+     * @var TokenVerify
      */
     private $tokenVerify;
 
@@ -39,22 +40,6 @@ class AuthorizationService
     public function __construct()
     {
         $this->config = new AuthConfig();
-    }
-
-    /**
-     * @param string $secret
-     */
-    public function setSecret(string $secret) : void
-    {
-        $this->config->setSecret($secret);
-    }
-
-    /**
-     * @param string $alg
-     */
-    public function setAlg(string $alg) : void
-    {
-        $this->config->setAlg($alg);
     }
 
     /**
@@ -69,17 +54,30 @@ class AuthorizationService
     }
 
     /**
+     * @return string
      * @throws Exceptions\NotSetConfigException
+     * @throws Exceptions\TokenException
      */
     public function auth(): string
     {
         $this->initTokenBuilder();
         $token = $this->tokenBuilder
-            ->setConfig($this->config)
             ->buildToken()
             ->getToken();
 
         return $token;
+    }
+
+    /**
+     * @param string $token
+     * @return bool
+     */
+    public function verify(string $token): bool
+    {
+        $this->initTokenVerify();
+        $this->tokenVerify->setToken($token);
+
+        return $this->tokenVerify->verify();
     }
 
     /**
@@ -88,5 +86,17 @@ class AuthorizationService
     private function initTokenBuilder()
     {
         $this->tokenBuilder = new TokenBuilder();
+        $this->tokenBuilder->setConfig($this->config);
     }
+
+    /**
+     *
+     */
+    private function initTokenVerify()
+    {
+        $this->tokenVerify = new TokenVerify();
+        $this->tokenVerify->setConfig($this->config);
+    }
+
+
 }
