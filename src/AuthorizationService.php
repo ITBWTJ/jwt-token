@@ -22,7 +22,7 @@ class AuthorizationService
     /**
      * @var
      */
-    private $userId;
+    private $data;
 
     /**
      * @var TokenBuilder
@@ -43,12 +43,12 @@ class AuthorizationService
     }
 
     /**
-     * @param int $userId
+     * @param array $data
      * @return AuthorizationService
      */
-    public function setUserId(int $userId) : self
+    public function setData(array $data) : self
     {
-        $this->userId = $userId;
+        $this->data = $data;
 
         return $this;
     }
@@ -87,6 +87,10 @@ class AuthorizationService
     {
         $this->tokenBuilder = new TokenBuilder();
         $this->tokenBuilder->setConfig($this->config);
+
+        if (!empty($this->data)) {
+            $this->tokenBuilder->setData($this->data);
+        }
     }
 
     /**

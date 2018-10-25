@@ -29,7 +29,7 @@ class TokenBuilder
      */
     private $config;
 
-    private $payload;
+    private $payload = [];
 
     /**
      * @param AuthConfig $config
