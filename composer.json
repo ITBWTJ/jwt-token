@@ -6,6 +6,7 @@
             "email": "19ivan.lev97@gmail.com"
         }
     ],
+    "description": "Jwt token package",
     "version": 1.0,
     "license": "MIT",
     "require": {
