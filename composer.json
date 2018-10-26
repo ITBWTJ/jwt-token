@@ -1,15 +1,15 @@
 {
-    "name": "johnny/jwt.test",
+    "name": "itbwtj/jwt.test",
     "authors": [
         {
             "name": "Ivan",
             "email": "19ivan.lev97@gmail.com"
         }
     ],
+    "license": "MIT",
     "require": {
         "predis/predis": "^1.1",
         "symfony/var-dumper": "^4.1",
-        "phpunit/phpunit": "7.4.0",
         "mockery/mockery": "^1.2"
     },
     "autoload": {
@@ -20,6 +20,7 @@
         }
     },
     "require-dev": {
-        "phpunit/php-code-coverage": "^6.1"
+        "phpunit/php-code-coverage": "^6.1",
+        "phpunit/phpunit": "7.4.0"
     }
 }
